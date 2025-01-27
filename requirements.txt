@@ -1,0 +1,5 @@
+jsonpath_ng==1.5.3
+cfn-flip
+python-benedict
+behave
+click
