@@ -31,6 +31,8 @@ setup(
         "jsonpath_ng<2.0.0",
         "PyYAML>=5.4.1",
         "click",
+        'cfn-flip',
+        'python-benedict'
     ],
     name="cfneval",
     packages=find_packages(),
@@ -41,5 +43,5 @@ setup(
         ]
     },
     url=("https://github.com/vanguard-oss/cfneval"),
-    version="1.0.0",
+    version="1.0.1",
 )
