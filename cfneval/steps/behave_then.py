@@ -40,7 +40,26 @@ def step_impl(context, name, expr, value):
     haystack = context.evaluator.get_effective_template()["Resources"][name]
     results = jpexpr.find(haystack)
     assert len(results) == 1
+    print(str(results[0].value))
     assert str(results[0].value) == value
+
+
+@then(u'the Resource "{name}" path "{expr}" length is "{value}"')
+def step_impl(context, name, expr, value):
+    jpexpr = parser.parse(expr)
+    haystack = context.evaluator.get_effective_template()["Resources"][name]
+    results = jpexpr.find(haystack)
+    assert len(results) == 1
+    assert len(results[0].value) == int(value)
+
+
+@then(u'the Resource "{name}" path "{expr}" contains "{value}"')
+def step_impl(context, name, expr, value):
+    jpexpr = parser.parse(expr)
+    haystack = context.evaluator.get_effective_template()["Resources"][name]
+    results = jpexpr.find(haystack)
+    assert len(results) == 1
+    assert value in results[0].value
 
 
 @then('the Output "{name}" will be set to "{value}"')

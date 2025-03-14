@@ -76,7 +76,7 @@ class TemplateEvaluator:
                     self._calc_params[k] = str(d["Default"])
                 else:
                     raise Exception(f"Missing required param {k}")
-            self._result["Parameters"][k] = {"Type": d.get("Type")}
+            self._result["Parameters"][k] = {"Type": d.get("Type"), "Default": self._calc_params[k]}
 
     def _calculate_conditions(self):
         """
@@ -260,9 +260,10 @@ class TemplateEvaluator:
             else:
                 value = node["Fn::Sub"][0]
                 extra_values = self._calculate_resource_node(node["Fn::Sub"][1])
-            while "$" in value:
-                idx = value.find("$")
-                end_of_var = value.find("}")
+            while "${" in value:
+                idx = value.find("${")
+                # Find the first '}' that happens after the ${}
+                end_of_var = value[idx + 2:].find("}")+idx+2
                 var_name = value[idx + 2 : end_of_var]
 
                 if "." in var_name:
