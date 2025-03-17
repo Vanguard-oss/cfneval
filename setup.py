@@ -43,5 +43,5 @@ setup(
         ]
     },
     url=("https://github.com/vanguard-oss/cfneval"),
-    version="1.0.1",
+    version="1.1.0",
 )

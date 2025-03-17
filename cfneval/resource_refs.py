@@ -4,7 +4,7 @@ from collections.abc import Callable
 def get_ref_for_elbv2_target_group(
     *, resource_name: str, resource: dict, account_id: str, region: str
 ) -> str:
-    return f"arn:aws:elasticloadbalancing:${region}:${account_id}:targetgroup/${resource_name}/1234"
+    return f"arn:aws:elasticloadbalancing:{region}:{account_id}:targetgroup/{resource_name}/1234"
 
 
 def get_ref_for_param_store(

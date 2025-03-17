@@ -2,6 +2,12 @@
 
 cfneval is a Python tool for taking a CloudFormation template and evaluating all the conditional logic in order to come up with the `effective` template that actually gets used.  You can use the tool just to see what the effective version looks like, or you can run it as part of a [behave](https://github.com/behave/behave) test suite to automatically regression test your CloudFormation template.
 
+## Step Documentation
+
+[Quickstart Guide](https://github.com/Vanguard-oss/cfneval/blob/master/docs/quickstart.md)
+[Step Reference](https://github.com/Vanguard-oss/cfneval/blob/master/docs/reference.md)
+[Compatability Guide](https://github.com/Vanguard-oss/cfneval/blob/master/docs/compatability.md)
+
 ## CLI Usage
 
 ```
@@ -37,6 +43,17 @@ Use the `--account-id` argument to simulate evaluating the template in a specifi
 
 Use the `--region` argument to simulate evaluating the template in another region.  It defaults to `us-east-1`.
 
-## Behave usage
+## Behave CLI usage
 
 cfneval comes with a wrapper around *behave* called *behave-cfn*.  That wrapper comes with the cfneval given/when/then's pre-registered and ready to use.  You just need to put your features in a *features* folder.
+
+## Behave steps usage
+
+cfneval can be integrated directly into a *behave* project.  Add the following code into a step file within **features/steps/**.
+
+```
+from cfneval.behave_steps import register_behave_steps
+
+register_behave_steps()
+```
+

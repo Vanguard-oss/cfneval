@@ -129,6 +129,26 @@ Verifies that the effective template for the resource does not contain something
 - name - name of the resource that will be checked
 - expr - A JsonPath expression for the path that will be validated
 
+## Then the Resource "name" path "expr" contains "value"
+
+Verifies that the effective value for the path inside of the resource is an array that contains the value
+
+**Parameters**
+
+- name - name of the resource that will be checked
+- expr - A JsonPath expression for the path that will be validated
+- value - the value that should be in the list
+
+## Then the Resource "name" path "expr" length is "value"
+
+Verifies that the effective value for the path inside of the resource is an array that has the specific length
+
+**Parameters**
+
+- name - name of the resource that will be checked
+- expr - A JsonPath expression for the path that will be validated
+- value - the length that the list should have
+
 ## Then the Resource "name" path "expr" matches "value"
 
 Verifies that the effective value for the path inside of the resource matches the expected value
