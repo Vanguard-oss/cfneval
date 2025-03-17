@@ -44,7 +44,7 @@ def step_impl(context, name, expr, value):
     assert str(results[0].value) == value
 
 
-@then(u'the Resource "{name}" path "{expr}" length is "{value}"')
+@then('the Resource "{name}" path "{expr}" length is "{value}"')
 def step_impl(context, name, expr, value):
     jpexpr = parser.parse(expr)
     haystack = context.evaluator.get_effective_template()["Resources"][name]
@@ -53,7 +53,7 @@ def step_impl(context, name, expr, value):
     assert len(results[0].value) == int(value)
 
 
-@then(u'the Resource "{name}" path "{expr}" contains "{value}"')
+@then('the Resource "{name}" path "{expr}" contains "{value}"')
 def step_impl(context, name, expr, value):
     jpexpr = parser.parse(expr)
     haystack = context.evaluator.get_effective_template()["Resources"][name]
