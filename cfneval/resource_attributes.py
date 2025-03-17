@@ -1,60 +1,59 @@
 from collections.abc import Callable
+from typing import Type
 
-
-def get_attrs_for_param_store(
-    *, resource_name: str, resource: dict, account_id: str, region: str
-) -> dict:
-    return {
-        "Type": resource["Properties"]["Type"],
-        "Value": resource["Properties"]["Value"],
-    }
-
-
-def get_attrs_for_ecs_service(
-    *, resource_name: str, resource: dict, account_id: str, region: str
-) -> dict:
-    return {
-        "Name": resource["Properties"]["ServiceName"],
-        # This isn't the exact format for the ARN, but it's close enough for testing
-        "Arn": f"arn:aws:ecs:{region}:{account_id}:service/{resource_name}",
-    }
-
-
-def get_attrs_for_ecs_cluster(
-    *, resource_name: str, resource: dict, account_id: str, region: str
-) -> dict:
-    return {
-        # This isn't the exact format for the ARN, but it's close enough for testing
-        "Arn": f"arn:aws:ecs:{region}:{account_id}:cluster/{resource_name}",
-    }
+from .resource_attribute_bundle import register_bundled_types
+from .resource_attribute_generator import ResourceAttributeGenerator
 
 
 class ResourceAttributeRegistry:
 
     def __init__(self):
         self.registry = {}
-        self.register_resource_attributes(
-            "AWS::SSM::Parameter", get_attrs_for_param_store
-        )
-        self.register_resource_attributes(
-            "AWS::ECS::Service", get_attrs_for_ecs_service
-        )
-        self.register_resource_attributes(
-            "AWS::ECS::Cluster", get_attrs_for_ecs_cluster
-        )
+        register_bundled_types(self)
 
-    def register_resource_attributes(self, resource_type: str, func: Callable) -> None:
-        self.registry[resource_type] = func
+    def register_resource_attributes(
+        self, resource_type: str, klass: type[ResourceAttributeGenerator]
+    ) -> None:
+        self.registry[resource_type] = klass
 
     def evaluate_attributes(
-        self, *, resource_name: str, resource: dict, account_id: str, region: str
+        self,
+        *,
+        stack_name: str,
+        resource_name: str,
+        resource: dict,
+        account_id: str,
+        region: str
     ) -> str:
         resource_type = resource["Type"]
         if resource_type in self.registry:
-            return self.registry[resource_type](
-                resource_name=resource_name,
-                resource=resource,
-                account_id=account_id,
-                region=region,
-            )
+            obj = self.registry[resource_type]()
+            obj.stack_name = stack_name
+            obj.resource_name = resource_name
+            obj.resource_type = resource_type
+            obj.resource = resource
+            obj.account_id = account_id
+            obj.region = region
+            return obj.get_attributes()
+        return None
+
+    def evaluate_ref(
+        self,
+        *,
+        stack_name: str,
+        resource_name: str,
+        resource: dict,
+        account_id: str,
+        region: str
+    ) -> str:
+        resource_type = resource["Type"]
+        if resource_type in self.registry:
+            obj = self.registry[resource_type]()
+            obj.stack_name = stack_name
+            obj.resource_name = resource_name
+            obj.resource_type = resource_type
+            obj.resource = resource
+            obj.account_id = account_id
+            obj.region = region
+            return obj.get_ref()
         return None

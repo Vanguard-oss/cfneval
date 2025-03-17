@@ -1,6 +1,5 @@
 from benedict import benedict
 from cfneval.resource_attributes import ResourceAttributeRegistry
-from cfneval.resource_refs import ResourceRefRegistry
 
 
 class TemplateEvaluator:
@@ -9,21 +8,22 @@ class TemplateEvaluator:
     """
 
     def __init__(self):
-        self._template = {}
-        self._params = {}
-        self._region = "us-east-1"
-        self._account_id = "123456789012"
-        self._ssm = {}
-        self._exports = {}
-        self._mocks = {}
-        self._result = {
+        self._template: dict = {}
+        self._params: dict = {}
+        self._region: str = "us-east-1"
+        self._partition: str = "aws"
+        self._account_id: str = "123456789012"
+        self._stack_name: str = "mystack"
+        self._ssm: dict = {}
+        self._exports: dict = {}
+        self._mocks: dict = {}
+        self._result: dict = {
             "Parameters": {},
             "Conditions": {},
             "Resources": {},
             "Outputs": {},
         }
-        self._resource_refs = ResourceRefRegistry()
-        self._resource_attrs = ResourceAttributeRegistry()
+        self._resource_attrs: ResourceAttributeRegistry = ResourceAttributeRegistry()
 
     @property
     def region(self) -> str:
@@ -34,12 +34,28 @@ class TemplateEvaluator:
         self._region = value
 
     @property
+    def partition(self) -> str:
+        return self._partition
+
+    @partition.setter
+    def partition(self, value: str):
+        self._partition = value
+
+    @property
     def account_id(self) -> str:
         return self._account_id
 
     @account_id.setter
     def account_id(self, value: str):
         self._account_id = value
+
+    @property
+    def stack_name(self) -> str:
+        return self._stack_name
+
+    @stack_name.setter
+    def stack_name(self, value: str):
+        self._stack_name = value
 
     def add_mock(self, resource_name: str, response: dict):
         """
@@ -76,7 +92,10 @@ class TemplateEvaluator:
                     self._calc_params[k] = str(d["Default"])
                 else:
                     raise Exception(f"Missing required param {k}")
-            self._result["Parameters"][k] = {"Type": d.get("Type"), "Default": self._calc_params[k]}
+            self._result["Parameters"][k] = {
+                "Type": d.get("Type"),
+                "Default": self._calc_params[k],
+            }
 
     def _calculate_conditions(self):
         """
@@ -152,7 +171,7 @@ class TemplateEvaluator:
         if value == "AWS::AccountId":
             return self._account_id
         if value == "AWS::StackName":
-            return "mystack"
+            return self._stack_name
         if value == "AWS::NoValue":
             return None
         if value in self._template["Resources"]:
@@ -161,9 +180,12 @@ class TemplateEvaluator:
             if value in self._mocks:
                 return self._mocks[value]
 
-            return self._resource_refs.evaluate_ref(
+            return self._resource_attrs.evaluate_ref(
+                stack_name=self._stack_name,
                 resource_name=value,
-                resource=self._template["Resources"][value],
+                resource=self._calculate_resource_node(
+                    self._template["Resources"][value]
+                ),
                 account_id=self._account_id,
                 region=self._region,
             )
@@ -217,6 +239,9 @@ class TemplateEvaluator:
         """
         Determine if the node is an instrinsic lookup
         """
+        # Handle an empty dict
+        if len(node) != 1:
+            return False
         k = list(node.keys())[0]
         if k == "Ref" or k.startswith("Fn::"):
             return True
@@ -231,8 +256,11 @@ class TemplateEvaluator:
             return d[path]
 
         res = self._resource_attrs.evaluate_attributes(
+            stack_name=self._stack_name,
             resource_name=res_name,
-            resource=self._template["Resources"][res_name],
+            resource=self._calculate_resource_node(
+                self._template["Resources"][res_name]
+            ),
             account_id=self._account_id,
             region=self._region,
         )
@@ -263,7 +291,7 @@ class TemplateEvaluator:
             while "${" in value:
                 idx = value.find("${")
                 # Find the first '}' that happens after the ${}
-                end_of_var = value[idx + 2:].find("}")+idx+2
+                end_of_var = value[idx + 2 :].find("}") + idx + 2
                 var_name = value[idx + 2 : end_of_var]
 
                 if "." in var_name:
